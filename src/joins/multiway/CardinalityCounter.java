@@ -35,7 +35,6 @@ public class CardinalityCounter extends Configured implements Tool {
 				OutputCollector<Text, Text> output, Reporter reporter)
 				throws IOException {
 			output.collect(key, new Text(inputFile));
-			
 		}
 		
 	}
