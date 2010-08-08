@@ -52,28 +52,52 @@ public class RepartitionJoin extends Configured implements Tool{
 		
 		conf.setJarByClass(RepartitionJoin.class);
 		conf.setReducerClass(RepartitionReducer.class);
+		
 		conf.setPartitionerClass(KeyPartitioner.class);
 		conf.setOutputValueGroupingComparator(TextPair.FirstComparator.class);
 		
 		
-		Path input1 = new Path(args[args.length - 3]);
-		Path input2 = new Path(args[args.length - 2]);
+//		Path input1 = new Path(args[args.length - 3]);
+//		Path input2 = new Path(args[args.length - 2]);
 		Path output = new Path(args[args.length - 1]);
-
-		MultipleInputs.addInputPath(conf,  input1,
-				KeyValueTextInputFormat.class, ZeroMapper.class);
+//
+//		MultipleInputs.addInputPath(conf,  input1,
+//				KeyValueTextInputFormat.class, ZeroMapper.class);
+//		
+//		MultipleInputs.addInputPath(conf,  input2,
+//				KeyValueTextInputFormat.class, OneMapper.class);
 		
-		MultipleInputs.addInputPath(conf,  input2,
-				KeyValueTextInputFormat.class, OneMapper.class);
+		conf.setMapperClass(ZeroMapper.class);
+		conf.setInputFormat(KeyValueTextInputFormat.class);
+	
+		Path[] inputPaths = new Path[args.length-1];
+		StringBuilder sb = new StringBuilder();
+		for(int i=0;i<args.length-1;i++)
+		{
+			sb.append(args[i]+";"+i+";");
+			inputPaths[i]=new Path(args[i]);
+		}
+		
+		conf.set("tables.tags", sb.toString());
+		
+		
+		FileInputFormat.setInputPaths(conf, inputPaths);
 		
 		FileOutputFormat.setOutputPath(conf, output);
 		
+		JobClient jc = new JobClient(conf);
+		
+		ClusterStatus cluster = jc.getClusterStatus();
+		conf.setNumReduceTasks(cluster.getMaxReduceTasks()-2);
+		
 		JobClient.runJob(conf);
+		//jc.run(arg0)
 	    return 0;
 	}
 	
 	public static void main(String[] args) throws Exception {
 		 int exitCode = ToolRunner.run(new RepartitionJoin(), args);
+		 System.out.println(exitCode);
 		    System.exit(exitCode);
 	}
 }

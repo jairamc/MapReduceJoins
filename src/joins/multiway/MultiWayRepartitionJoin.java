@@ -3,6 +3,9 @@ package joins.multiway;
 import java.io.File;
 
 import joins.twoway.TextPair;
+
+import org.apache.hadoop.mapred.ClusterStatus;
+import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.KeyValueTextInputFormat;
 import org.apache.hadoop.fs.Path; 
 import org.apache.hadoop.io.Text;
@@ -72,6 +75,15 @@ public class MultiWayRepartitionJoin extends Configured implements Tool{
 		FileInputFormat.setInputPaths(conf, inputPaths);
 		
 		FileOutputFormat.setOutputPath(conf, new Path(args[args.length-1]));
+		
+		JobClient jc = new JobClient(conf);
+		
+		ClusterStatus cluster = jc.getClusterStatus();
+		int MaxReduceTasks = cluster.getMaxReduceTasks();
+		if(MaxReduceTasks>2)
+		{conf.setNumReduceTasks(MaxReduceTasks-2);}
+		else
+		{conf.setNumReduceTasks(MaxReduceTasks);}
 		
 		JobClient.runJob(conf);
 	    return 0;

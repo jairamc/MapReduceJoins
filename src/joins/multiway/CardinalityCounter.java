@@ -132,6 +132,11 @@ public class CardinalityCounter extends Configured implements Tool {
 		FileOutputFormat.setOutputPath(conf, new Path(args[args.length - 1]));
 		conf.setOutputFormat(CounterMultipleTextOutputFormat.class);
 		
+		JobClient jc = new JobClient(conf);
+		
+		ClusterStatus cluster = jc.getClusterStatus();
+		conf.setNumReduceTasks(cluster.getMaxReduceTasks()-2);
+		
 		job = JobClient.runJob(conf);
 		
 		return 0;
